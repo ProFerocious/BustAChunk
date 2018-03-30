@@ -1,0 +1,23 @@
+name: BustAChunk
+version: 1.0
+main: io.github.proferocious.BustAChunk
+authors: [ProFerocious]
+website: "https://github.com/ProFerocious/BustAChunk"
+depend: [Factions]
+commands:
+  bustachunk:
+    description: Bust a Chunk!
+    aliases: [chunkbuster]
+permissions:
+  bustachunk.*:
+    description: All Bust a Chunk permissions.
+    children:
+      bustachunk.give: true
+      bustachunk.lockdown: true
+      bustachunk.lockdownnotice: true
+  bustachunk.give:
+    description: Give out the item.
+  bustachunk.lockdown:
+    description: Lock down everything.
+  bustachunk.lockdownnotice:
+    description: Notice of lockdowns

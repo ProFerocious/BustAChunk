@@ -1,0 +1,24 @@
+item:
+  display: "&bBust a Chunk!"
+  lore:
+   - "&3An ancient weapon"
+   - "&3Destroys everything below it when placed in a chunk."
+  lore-identifier: "Busts Chunks!"
+allowed:
+  ally: false
+  enemy: false
+  neutral: false
+  own: true
+  safezone: false
+  truce: false
+  warzone: false
+  wilderness: true
+messages:
+  already: "&cOnly one Bust a Chunk can be active in a chunk at once!"
+  deny: "&cYou cannot place Bust a Chunk in this chunk!"
+  deny-lockdown: "&cBust a Chunk is temporarily disabled!"
+  give-target-needed: "&cNeed a valid target to give to!"
+  lockdown-on: "&cBust a Chunk temporarily disabled!"
+  lockdown-off: "&bBust a Chunk now enabled!"
+  use: "&cTime to bust a chunk! Be careful! The glass layers may last only ten seconds!"
+
