@@ -110,7 +110,7 @@ public final class BustAListen implements Listener {
             stands.add(armorStand);
         }
 
-        this.plugin.getServer().getOnlinePlayers().stream().filter((p) -> ((Math.abs(p.getLocation().getBlockX() - event.getBlock().getX()) <= 50) && (Math.abs(p.getLocation().getBlockZ() - event.getBlock().getZ()) <= 50))).forEachOrdered((p) -> {
+        this.plugin.getServer().getOnlinePlayers().stream().filter((p) -> ((event.getBlock().getWorld() == p.getWorld()) && (Math.abs(p.getLocation().getBlockX() - event.getBlock().getX()) <= 50) && (Math.abs(p.getLocation().getBlockZ() - event.getBlock().getZ()) <= 50))).forEachOrdered((p) -> {
             p.sendMessage(this.plugin.getMessageUse());
         });
 
