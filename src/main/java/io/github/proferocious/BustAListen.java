@@ -53,6 +53,9 @@ public final class BustAListen implements Listener {
         if (!event.getItemInHand().hasItemMeta()) {
             return;
         }
+        if (!event.getItemInHand().getItemMeta().hasLore()) {
+            return;
+        }
         List<String> lore = event.getItemInHand().getItemMeta().getLore();
         if (!lore.get(lore.size() - 1).equalsIgnoreCase(this.plugin.getLoreIdentifier())) {
             return;
@@ -107,7 +110,9 @@ public final class BustAListen implements Listener {
             stands.add(armorStand);
         }
 
-        this.plugin.getServer().getOnlinePlayers().forEach(p -> p.sendMessage(this.plugin.getMessageUse()));
+        this.plugin.getServer().getOnlinePlayers().stream().filter((p) -> ((Math.abs(p.getLocation().getBlockX() - event.getBlock().getX()) <= 50) && (Math.abs(p.getLocation().getBlockZ() - event.getBlock().getZ()) <= 50))).forEachOrdered((p) -> {
+            p.sendMessage(this.plugin.getMessageUse());
+        });
 
         BukkitRunnable killBlock = new BukkitRunnable() {
             @Override
