@@ -1,9 +1,10 @@
 name: BustAChunk
-version: 1.0
+version: 1.1
 main: io.github.proferocious.BustAChunk
 authors: [ProFerocious]
 website: "https://github.com/ProFerocious/BustAChunk"
 depend: [Factions]
+softdepend: [WorldGuard]
 commands:
   bustachunk:
     description: Bust a Chunk!
