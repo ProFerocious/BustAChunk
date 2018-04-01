@@ -23,14 +23,18 @@ import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.struct.Relation;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
@@ -43,12 +47,15 @@ import java.util.function.Consumer;
 public final class BustAListen implements Listener {
     private final BustAChunk plugin;
     private final Set<Chunk> activeChunks = new HashSet<>();
+    private final WorldGuardPlugin worldGuardPlugin;
 
     public BustAListen(BustAChunk plugin) {
         this.plugin = plugin;
+        Plugin wg = plugin.getServer().getPluginManager().getPlugin("WorldGuard");
+        this.worldGuardPlugin = (wg instanceof WorldGuardPlugin) ? (WorldGuardPlugin) wg : null;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlace(final BlockPlaceEvent event) {
         if (!event.getItemInHand().hasItemMeta()) {
             return;
@@ -62,6 +69,12 @@ public final class BustAListen implements Listener {
             event.setCancelled(true);
             return;
         }
+        if (this.plugin.getWorldBlackList().stream().anyMatch(s -> s.equalsIgnoreCase(event.getBlock().getWorld().getName()))) {
+            event.getPlayer().sendMessage(this.plugin.getMessageDenyWorldBlacklist());
+            event.setCancelled(true);
+            return;
+        }
+
         final Chunk chunk = event.getBlock().getChunk();
         int chunkX = chunk.getX() * 16 + 8;
         int chunkZ = chunk.getZ() * 16 + 8;
@@ -70,9 +83,10 @@ public final class BustAListen implements Listener {
             event.setCancelled(true);
             return;
         }
-        final FPlayer player = FPlayers.getInstance().getByPlayer(event.getPlayer());
+        final Player player = event.getPlayer();
+        final FPlayer factionsPlayer = FPlayers.getInstance().getByPlayer(event.getPlayer());
         final Faction blockFaction = Board.getInstance().getFactionAt(new FLocation(event.getBlock().getLocation()));
-        Relation relation = blockFaction.getRelationTo(player);
+        Relation relation = blockFaction.getRelationTo(factionsPlayer);
         if ((!this.plugin.isAllowAlly() && relation == Relation.ALLY) ||
                 (!this.plugin.isAllowEnemy() && relation == Relation.ENEMY) ||
                 (!this.plugin.isAllowNeutral() && blockFaction.isNormal() && relation == Relation.NEUTRAL) ||
@@ -94,7 +108,7 @@ public final class BustAListen implements Listener {
         int startingHeight = event.getBlockPlaced().getY() - 1;
         final Queue<Block> blocks = new LinkedList<>();
 
-        this.processBlocks(chunk, startingHeight, blocks::add);
+        this.processBlocks(player, chunk, startingHeight, blocks::add);
         for (int y = startingHeight + 10 - (startingHeight % 10); y >= 0; y -= 10) {
             Location location = new Location(chunk.getWorld(), chunkX, y, chunkZ);
             ArmorStand armorStand = location.getWorld().spawn(location, ArmorStand.class);
@@ -107,7 +121,9 @@ public final class BustAListen implements Listener {
             stands.add(armorStand);
         }
 
-        this.plugin.getServer().getOnlinePlayers().forEach(p -> p.sendMessage(this.plugin.getMessageUse()));
+        this.plugin.getServer().getOnlinePlayers().stream()
+                .filter(p -> p.getWorld().equals(chunk.getWorld()) && (Math.abs(p.getLocation().getBlockX() - chunkX) < 50) && (Math.abs(p.getLocation().getBlockZ() - chunkZ) < 50))
+                .forEach(p -> p.sendMessage(this.plugin.getMessageUse()));
 
         BukkitRunnable killBlock = new BukkitRunnable() {
             @Override
@@ -120,7 +136,7 @@ public final class BustAListen implements Listener {
         final BukkitRunnable cleanup = new BukkitRunnable() {
             @Override
             public void run() {
-                BustAListen.this.processBlocks(chunk, startingHeight, block -> block.setType(Material.AIR));
+                BustAListen.this.processBlocks(player, chunk, startingHeight, block -> block.setType(Material.AIR));
                 BustAListen.this.activeChunks.remove(chunk);
                 stands.forEach(ArmorStand::remove);
             }
@@ -158,12 +174,15 @@ public final class BustAListen implements Listener {
         buster.runTaskTimer(this.plugin, 1, 10L);
     }
 
-    private void processBlocks(Chunk chunk, int startingHeight, Consumer<Block> consumer) {
+    private void processBlocks(Player player, Chunk chunk, int startingHeight, Consumer<Block> consumer) {
         Block block;
         for (int y = startingHeight; y >= 0; y--) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     block = chunk.getBlock(x, y, z);
+                    if (this.worldGuardPlugin != null && !this.worldGuardPlugin.canBuild(player, block)) {
+                        continue;
+                    }
                     if (!(block.getType() == Material.AIR) && !(block.getType() == Material.BEDROCK)) {
                         consumer.accept(block);
                     }

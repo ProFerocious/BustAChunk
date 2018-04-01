@@ -38,10 +38,12 @@ public class BustAChunk extends JavaPlugin {
     private String messageUse;
     private String messageDeny;
     private String messageDenyLockdown;
+    private String messageDenyWorldBlacklist;
     private String messageGiveTargetNeeded;
     private String messageAlready;
     private String messageLockdownOn;
     private String messageLockdownOff;
+    private List<String> worldBlackList;
 
     @Override
     public void onEnable() {
@@ -65,10 +67,13 @@ public class BustAChunk extends JavaPlugin {
         this.messageAlready = this.loadString("messages.already", "&cOnly one Bust a Chunk can be active in a chunk at once!");
         this.messageDeny = this.loadString("message.deny", "&cYou cannot place Bust a Chunk in this chunk!");
         this.messageDenyLockdown = this.loadString("message.deny-lockdown", "&cBust a Chunk is temporarily disabled!");
+        this.messageDenyWorldBlacklist = this.loadString("message.deny-world-blacklist", "&cBust a Chunk disabled on this world!");
         this.messageGiveTargetNeeded = this.loadString("message.give-target-needed", "&cNeed a valid target to give to!");
         this.messageLockdownOff = this.loadString("messages.lockdown-off", "&bBust a Chunk now enabled!");
         this.messageLockdownOn = this.loadString("messages.lockdown-on", "&cBust a Chunk temporarily disabled!");
         this.messageUse = this.loadString("messages.use", "&cTime to bust a chunk! Be careful! The glass layers may last only ten seconds!");
+
+        this.worldBlackList = this.getConfig().getStringList("world-blacklist");
     }
 
     private String loadString(String name, String defaultText) {
@@ -155,6 +160,10 @@ public class BustAChunk extends JavaPlugin {
         return this.messageDenyLockdown;
     }
 
+    public String getMessageDenyWorldBlacklist() {
+        return this.messageDenyWorldBlacklist;
+    }
+
     public String getMessageGiveTargetNeeded() {
         return this.messageGiveTargetNeeded;
     }
@@ -169,5 +178,9 @@ public class BustAChunk extends JavaPlugin {
 
     public String getMessageLockdownOff() {
         return this.messageLockdownOff;
+    }
+
+    public List<String> getWorldBlackList() {
+        return this.worldBlackList;
     }
 }
